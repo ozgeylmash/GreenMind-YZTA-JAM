@@ -1,0 +1,123 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GreenMind - Sustainability AI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .section-padding { padding: 80px 0; }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+  <nav class="bg-green-600 p-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+      <a href="#" class="text-white text-2xl font-semibold">GreenMind</a>
+      <ul class="flex space-x-8">
+        <li><a href="#header" class="text-white">Home</a></li>
+        <li><a href="#importance" class="text-white">Why It Matters</a></li>
+        <li><a href="#advice" class="text-white">Get Advice</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <header class="relative w-full h-[500px] flex items-center justify-center text-center">
+    <div class="absolute inset-0 bg-black bg-opacity-30 z-10"></div>
+    <img src="{% static 'img/header.webp' %}" alt="Slide 1" class="w-full h-full object-cover object-center absolute inset-0 blur-sm z-0">
+    <div class="text-center md:text-center md:w-1/2 p-6 relative z-10 text-white">
+      <h1 class="text-5xl font-bold mb-4 bg-green-700 bg-opacity-70 p-2">Together, We Can Create a Greener Tomorrow</h1>
+      <p class="text-lg mb-6">The future of our planet is in our hands. It's time to take action, reduce our carbon footprint, and protect the environment. With GreenMind, you have the tools to make smarter, more sustainable choices that positively impact both our planet and society.</p>
+    </div>
+  </header>
+  
+  <section id="importance" class="section-padding bg-green-50 text-green-700">
+    <div class="max-w-7xl mx-auto text-center">
+      <h2 class="text-4xl font-semibold mb-4">Why Sustainability Matters More Than Ever</h2>
+      <p class="text-lg mb-6 text-justify">Sustainability isn't just a buzzword – it's a movement that can change the course of humanity. Our actions today will directly shape the world we live in tomorrow. Whether it's reducing waste, conserving water, or switching to renewable energy, every decision we make has the power to impact the environment.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4 text-justify">
+          <p><strong>Protecting Our Planet:</strong> Earth's natural resources are finite, and it's our responsibility to ensure that they are used wisely. By reducing waste, conserving water, and promoting eco-friendly alternatives, we can secure the future for generations to come.</p>
+          <p><strong>Combating Climate Change:</strong> Climate change is one of the greatest challenges of our time. We need to reduce greenhouse gas emissions and transition to cleaner energy sources to protect the environment and prevent catastrophic weather events.</p>
+        </div>
+        <div class="space-y-4 text-justify">
+          <p><strong>Supporting Biodiversity:</strong> The loss of biodiversity threatens food security, clean water access, and human health. Protecting ecosystems is essential for maintaining the delicate balance of life on Earth.</p>
+          <p><strong>Social Responsibility:</strong> Sustainability isn't just about protecting the environment – it's also about creating equitable and healthy communities. Sustainable practices promote social well-being by ensuring access to clean air, water, and a safe environment for all.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="advice" class="section-padding bg-white">
+    <div class="max-w-7xl mx-auto text-center">
+      <h2 class="text-3xl font-semibold text-green-700 mb-6">Get Personalized Sustainability Advice</h2>
+      <p class="text-lg mb-6">Are you curious about how you can reduce your environmental impact? Our AI is here to provide guidance and suggest actionable steps for a more sustainable lifestyle.</p>
+      <div class="flex flex-row gap-20">
+        <form method="POST" class="space-y-4 w-full md:w-1/2">
+        {% csrf_token %}
+        <textarea id="prompt" rows="4" class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Example: How can I reduce my carbon footprint?"></textarea>
+        <button id="generateButton" type="button" onclick="getAdvice()" class="w-64 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-md transition">
+          Get Sustainability Advice
+        </button>
+      </form>
+        <div class="text-lg text-gray-600 text-justify">
+          <h4 class="font-semibold mb-1">🔍 Sample questions you can ask:</h4>
+          <ul class="list-disc list-inside space-y-1">
+            <li>How can I save more energy at home?</li>
+            <li>What are eco-friendly alternatives to plastic bags?</li>
+            <li>How does food waste impact the climate?</li>
+            <li>How can I recycle more effectively in my city?</li>
+            <li>What are the most eco-friendly ways to commute?</li>
+          </ul>
+        </div>
+      </div>
+      <div id="response" class="mt-8 p-4 bg-gray-100 rounded-md min-h-[100px] text-gray-700 text-justify"></div>
+    </div>
+  </section>
+
+  <footer class="bg-green-600 text-white text-center py-6">
+    <p>&copy; 2025 GreenMind. All rights reserved. | Built for a sustainable future</p>
+  </footer>
+
+  <script>
+    async function getAdvice() {
+      const prompt = document.getElementById("prompt").value;
+  
+      if (!prompt) {
+        alert("Please enter a question.");
+        return;
+      }
+  
+      const generateButton = document.getElementById("generateButton");
+      generateButton.disabled = true;
+      generateButton.innerText = "Generating..."; 
+  
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  
+      const response = await fetch('/generate-text/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ "userInput": prompt })
+      });
+  
+      const data = await response.json();
+      const responseDiv = document.getElementById("response");
+  
+      if (data.generatedText) {
+        responseDiv.innerText = data.generatedText;
+      } else {
+        responseDiv.innerText = "Error: " + data.error;
+      }
+  
+      generateButton.disabled = false;
+      generateButton.innerText = "Get Sustainability Advice";
+    }
+  </script>
+</body>
+</html>
